@@ -2711,7 +2711,7 @@ img {
 }
 
 .home-about {
-    background: #f50856;
+    background: #000000;
     color: #fff;
     padding: 5rem 0;
     text-align: center
@@ -3308,4 +3308,5 @@ img {
         font-size: 1.5rem
     }
 }
+
 
