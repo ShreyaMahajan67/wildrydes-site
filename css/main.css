@@ -2674,8 +2674,8 @@ img {
 
 @media screen and (min-width:75em) {
     .page-home .site-header .title:after {
-        background: -webkit-linear-gradient(top, transparent, rgba(243, 8, 85, .85) 99%, rgba(245, 8, 86, .85));
-        background: linear-gradient(180deg, transparent 0, rgba(243, 8, 85, .85) 99%, rgba(245, 8, 86, .85));
+        background: -webkit-linear-gradient(top, #1e1e1e, #000000);
+        background: linear-gradient(180deg, #1e1e1e, #000000);
         content: '';
         height: 3.75rem;
         width: 100%;
@@ -3308,5 +3308,6 @@ img {
         font-size: 1.5rem
     }
 }
+
 
 
