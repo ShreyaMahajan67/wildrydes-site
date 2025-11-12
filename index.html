@@ -100,6 +100,10 @@
       </div>
     </section>
 
+    <!-- Chatbot container -->
+<div id="lex-web-ui"></div>
+
+
     <footer class="site-footer">
       <div class="row column">
         <nav class="footer-nav">
@@ -119,8 +123,36 @@
       </div>
     </footer>
 
+<script src="https://d1mhx4t7su4p4u.cloudfront.net/lex-web-ui-loader.min.js"></script>
+<script>
+  var loaderOptions = {
+    baseUrl: "https://d1mhx4t7su4p4u.cloudfront.net/lex-web-ui/",
+    shouldLoadMinDeps: true,
+    config: {
+      cognito: {
+        poolId: "eu-north-1_E2gRQ72g7", // e.g., eu-north-1:xxxxxx
+      },
+      lex: {
+        botName: "RideAssistantBot",  // e.g., RideBot
+        botAlias: "Test",          // or the alias name you created
+        region: "eu-north-1",     // e.g., eu-north-1
+      },
+      ui: {
+        toolbarTitle: "Ride Assistant",
+        toolbarLogo: "",
+        toolbarColor: "#333333",
+        welcomeMessage: "Hi there! I'm your Ride Assistant. How can I help?",
+        parentOrigin: window.location.origin
+      }
+    }
+  };
+  window.loadLexWebUi(loaderOptions);
+</script>
+
+    
     <script src="js/vendor.js"></script>
 
     <script src="js/main.js"></script>
   </body>
 </html>
+
