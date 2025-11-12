@@ -130,9 +130,94 @@
     <script src="js/vendor.js"></script>
 
     <script src="js/main.js"></script>
-    <script src="booking.js"></script>
+    <!-- AWS SDK -->
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1495.0.min.js"></script>
+
+<script>
+(function initLexGuestBot() {
+    const LEX_BOT_REGION = 'eu-west-2'; // Region of your Lex bot
+    const IDENTITY_POOL_ID = 'eu-west-2:03e1fa91-8f97-4272-87c0-f18e200a5a00'; // Cognito Identity Pool ID for guest access
+    const BOT_NAME = 'RideAssistantBot';
+    const BOT_ALIAS = 'Test';
+
+    // Create chat container
+    if (!document.getElementById('lexChatContainer')) {
+        const chatContainer = document.createElement('div');
+        chatContainer.id = 'lexChatContainer';
+        chatContainer.style = `
+            position:fixed;
+            bottom:10px;
+            right:10px;
+            width:300px;
+            height:400px;
+            border:1px solid #ccc;
+            border-radius:8px;
+            background:#fff;
+            display:flex;
+            flex-direction:column;
+            z-index:1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        chatContainer.innerHTML = `
+            <div id="lexHeader" style="background:#333;color:#fff;padding:8px;text-align:center;font-weight:bold;">
+                Ride Assistant
+            </div>
+            <div id="lexMessages" style="flex:1;padding:5px;overflow-y:auto;font-size:14px;"></div>
+            <input id="lexInput" type="text" placeholder="Ask me anything..." style="border-top:1px solid #ccc;padding:5px;width:100%;box-sizing:border-box;" />
+        `;
+        document.body.appendChild(chatContainer);
+    }
+
+    const lexMessages = document.getElementById('lexMessages');
+    const lexInput = document.getElementById('lexInput');
+
+    function appendMessage(sender, message) {
+        const msgDiv = document.createElement('div');
+        msgDiv.style.marginBottom = '8px';
+        msgDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+        lexMessages.appendChild(msgDiv);
+        lexMessages.scrollTop = lexMessages.scrollHeight;
+    }
+
+    // AWS SDK for guest access
+    AWS.config.region = LEX_BOT_REGION;
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: IDENTITY_POOL_ID
+    });
+
+    const lexruntime = new AWS.LexRuntime({ region: LEX_BOT_REGION });
+
+    // Send message on Enter
+    lexInput.addEventListener('keydown', function(e) {
+        if ((e.key === 'Enter' || e.keyCode === 13) && lexInput.value.trim() !== '') {
+            e.preventDefault();
+            const userMessage = lexInput.value.trim();
+            appendMessage('You', userMessage);
+            lexInput.value = '';
+
+            const params = {
+                botAlias: BOT_ALIAS,
+                botName: BOT_NAME,
+                inputText: userMessage,
+                userId: 'guest_' + Date.now(),
+                sessionAttributes: {}
+            };
+
+            lexruntime.postText(params, function(err, data) {
+                if (err) {
+                    console.error(err);
+                    appendMessage('Bot', 'Sorry, something went wrong.');
+                } else {
+                    appendMessage('Bot', data.message || '...');
+                }
+            });
+        }
+    });
+})();
+</script>
   </body>
 </html>
+
 
 
 
