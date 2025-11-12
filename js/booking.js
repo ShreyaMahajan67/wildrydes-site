@@ -396,7 +396,7 @@
     }
 
     setStatus("loading", "Refreshing ride history…");
-    callApi("/bookings/recent", "GET")
+    callApi("/ride", "GET")
       .then((response) => {
         const items = Array.isArray(response) ? response : response.items || [];
         const normalised = items
@@ -464,7 +464,7 @@
       return;
     }
 
-    callApi("/bookings/estimate", "POST", payload)
+    callApi("/ride", "POST", payload)
       .then((response) => handleSuccess(normaliseEstimate(response, payload)))
       .catch((error) => {
         console.error("Estimate failed", error);
@@ -590,7 +590,7 @@
       return;
     }
 
-    callApi("/bookings", "POST", bookingPayload)
+    callApi("/ride", "POST", bookingPayload)
       .then((response) => handleBookingSuccess(response))
       .catch((error) => {
         console.error("Booking failed", error);
