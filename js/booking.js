@@ -786,25 +786,14 @@
 // ---------- LEX CHATBOT FOR GUEST USERS ----------
 (function initLexGuestBot() {
     // Replace these placeholders with your actual values
-    const LEX_BOT_REGION = 'eu-west-2'; // e.g., 'us-east-1'
-    const IDENTITY_POOL_ID = 'eu-north-1_E2gRQ72g7'; // Cognito Identity Pool ID that allows guest access
+    const LEX_BOT_REGION = 'eu-west-2'; // Lex bot region
+    const IDENTITY_POOL_ID = 'eu-west-2:03e1fa91-8f97-4272-87c0-f18e200a5a00'; // Cognito Identity Pool ID allowing guest access
     const BOT_NAME = 'RideAssistantBot';
     const BOT_ALIAS = 'Test';
 
-    // Create chat box container if not already in HTML
-    if (!document.getElementById('lexChatContainer')) {
-        const chatContainer = document.createElement('div');
-        chatContainer.id = 'lexChatContainer';
-        chatContainer.style = 'position:fixed;bottom:10px;right:10px;width:300px;height:400px;border:1px solid #ccc;background:#fff;display:flex;flex-direction:column;z-index:1000;';
-        chatContainer.innerHTML = `
-            <div id="lexMessages" style="flex:1;padding:5px;overflow-y:auto;font-size:14px;"></div>
-            <input id="lexInput" type="text" placeholder="Ask me anything..." style="border-top:1px solid #ccc;padding:5px;width:100%;box-sizing:border-box;" />
-        `;
-        document.body.appendChild(chatContainer);
-    }
-
-    const lexMessages = document.getElementById('lexMessages');
-    const lexInput = document.getElementById('lexInput');
+    // References to your existing divs
+    const lexMessages = document.getElementById('chatbotMessages');
+    const lexInput = document.getElementById('chatbotInput');
 
     function appendMessage(sender, message) {
         const msgDiv = document.createElement('div');
@@ -818,7 +807,7 @@
     AWS.config.region = LEX_BOT_REGION;
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
         IdentityPoolId: IDENTITY_POOL_ID
-        // No Logins key since this is guest (unauthenticated)
+        // No Logins key needed since this is guest (unauthenticated)
     });
 
     const lexruntime = new AWS.LexRuntime({ region: LEX_BOT_REGION });
@@ -834,7 +823,7 @@
                 botAlias: BOT_ALIAS,
                 botName: BOT_NAME,
                 inputText: userMessage,
-                userId: 'guest_' + Date.now(), // unique userId for session
+                userId: 'guest_' + Date.now(), // unique userId for this session
                 sessionAttributes: {}
             };
 
@@ -848,5 +837,4 @@
             });
         }
     });
-
 })();
