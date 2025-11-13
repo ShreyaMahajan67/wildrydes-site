@@ -135,37 +135,21 @@
 
 <script>
 (function initLexGuestBot() {
-    const LEX_BOT_REGION = 'eu-west-2'; // Region of your Lex bot
-    const IDENTITY_POOL_ID = 'eu-west-2:03e1fa91-8f97-4272-87c0-f18e200a5a00'; // Cognito Identity Pool ID for guest access
+    const LEX_BOT_REGION = 'eu-west-2';
+    const IDENTITY_POOL_ID = 'eu-west-2:03e1fa91-8f97-4272-87c0-f18e200a5a00'; // Same region as Lex bot
     const BOT_NAME = 'RideAssistantBot';
     const BOT_ALIAS = 'Test';
 
-  const userId = localStorage.getItem('lexGuestUserId') || ('guest_' + Date.now());
-localStorage.setItem('lexGuestUserId', userId);
+    // Persistent guest user ID
+    const userId = localStorage.getItem('lexGuestUserId') || ('guest_' + Date.now());
+    localStorage.setItem('lexGuestUserId', userId);
 
-
-    // Create chat container
+    // Create chat container if not present
     if (!document.getElementById('lexChatContainer')) {
         const chatContainer = document.createElement('div');
         chatContainer.id = 'lexChatContainer';
-        chatContainer.style = `
-            position:fixed;
-            bottom:10px;
-            right:10px;
-            width:300px;
-            height:400px;
-            border:1px solid #ccc;
-            border-radius:8px;
-            background:#fff;
-            display:flex;
-            flex-direction:column;
-            z-index:1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        `;
+        chatContainer.style = 'position:fixed;bottom:10px;right:10px;width:300px;height:400px;border:1px solid #ccc;background:#fff;display:flex;flex-direction:column;z-index:1000;';
         chatContainer.innerHTML = `
-            <div id="lexHeader" style="background:#333;color:#fff;padding:8px;text-align:center;font-weight:bold;">
-                Ride Assistant
-            </div>
             <div id="lexMessages" style="flex:1;padding:5px;overflow-y:auto;font-size:14px;"></div>
             <input id="lexInput" type="text" placeholder="Ask me anything..." style="border-top:1px solid #ccc;padding:5px;width:100%;box-sizing:border-box;" />
         `;
@@ -183,7 +167,7 @@ localStorage.setItem('lexGuestUserId', userId);
         lexMessages.scrollTop = lexMessages.scrollHeight;
     }
 
-    // AWS SDK for guest access
+    // Initialize AWS SDK for guest access
     AWS.config.region = LEX_BOT_REGION;
     AWS.config.credentials = new AWS.CognitoIdentityCredentials({
         IdentityPoolId: IDENTITY_POOL_ID
@@ -191,36 +175,54 @@ localStorage.setItem('lexGuestUserId', userId);
 
     const lexruntime = new AWS.LexRuntime({ region: LEX_BOT_REGION });
 
-    // Send message on Enter
-    lexInput.addEventListener('keydown', function(e) {
-        if ((e.key === 'Enter' || e.keyCode === 13) && lexInput.value.trim() !== '') {
-            e.preventDefault();
-            const userMessage = lexInput.value.trim();
-            appendMessage('You', userMessage);
+    // Message queue to handle throttling
+    const messageQueue = [];
+    let processing = false;
+
+    function processQueue() {
+        if (processing || messageQueue.length === 0) return;
+        processing = true;
+
+        const { message } = messageQueue.shift();
+        appendMessage('You', message);
+
+        const params = {
+            botAlias: BOT_ALIAS,
+            botName: BOT_NAME,
+            inputText: message,
+            userId: userId,
+            sessionAttributes: {}
+        };
+
+        lexruntime.postText(params, function(err, data) {
+            if (err) {
+                console.error(err);
+                appendMessage('Bot', 'Sorry, something went wrong.');
+            } else {
+                appendMessage('Bot', data.message || '...');
+            }
+
+            processing = false;
+            // Small delay to avoid hitting 429
+            setTimeout(processQueue, 500); // 0.5s gap between messages
+        });
+    }
+
+    // Handle Enter key
+    lexInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && lexInput.value.trim() !== '') {
+            messageQueue.push({ message: lexInput.value.trim() });
             lexInput.value = '';
-
-            const params = {
-                botAlias: BOT_ALIAS,
-                botName: BOT_NAME,
-                inputText: userMessage,
-                userId: 'guest_' + Date.now(),
-                sessionAttributes: {}
-            };
-
-            lexruntime.postText(params, function(err, data) {
-                if (err) {
-                    console.error(err);
-                    appendMessage('Bot', 'Sorry, something went wrong.');
-                } else {
-                    appendMessage('Bot', data.message || '...');
-                }
-            });
+            processQueue();
         }
     });
+
 })();
 </script>
+
   </body>
 </html>
+
 
 
 
