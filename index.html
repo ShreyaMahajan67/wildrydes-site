@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="css/font.css" />
     <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/botstyle.css" />
 
     <script src="js/vendor/modernizr.js"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1495.0.min.js"></script>
@@ -130,7 +131,7 @@
 
     <script src="js/main.js"></script>
     <!-- AWS SDK -->
-<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1495.0.min.js"></script>
+<!-- <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1495.0.min.js"></script>
 
 <script>
 (function initLexGuestBot() {
@@ -217,10 +218,66 @@
     });
 
 })();
+</script> -->
+    <div id="chat"></div>
+
+<input type="text" id="userInput" placeholder="Type your message...">
+<button onclick="sendMessage()">Send</button>
+
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1361.0.min.js"></script>
+<script>
+  // Configure AWS
+  AWS.config.region = 'eu-west-2'; // e.g., us-east-1
+  AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+    IdentityPoolId: 'eu-west-2:f7228ab6-bde0-4b6d-bb47-ad75f0f5e7d5' // Replace with your Cognito Identity Pool ID
+  });
+
+  const lexRuntime = new AWS.LexRuntime();
+
+  const chatDiv = document.getElementById('chat');
+  const userInput = document.getElementById('userInput');
+
+  function appendMessage(sender, message) {
+    const div = document.createElement('div');
+    div.className = sender;
+    div.textContent = (sender === 'user' ? 'You: ' : 'Bot: ') + message;
+    chatDiv.appendChild(div);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
+
+  function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    appendMessage('user', text);
+    userInput.value = '';
+
+    const params = {
+      botName: 'RideAssistantBot',    // Replace with your Lex bot name
+      botAlias: 'Test',  // Replace with your Lex bot alias
+      userId: 'user-' + Date.now(), // Unique user ID
+      inputText: text
+    };
+
+    lexRuntime.postText(params, function(err, data) {
+      if (err) {
+        console.error(err);
+        appendMessage('bot', 'Error: ' + err.message);
+      } else {
+        appendMessage('bot', data.message || '...');
+      }
+    });
+  }
+
+  // Optional: allow pressing Enter to send
+  userInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+  });
 </script>
 
   </body>
 </html>
+
 
 
 
